@@ -7,7 +7,7 @@ CREATE TABLE Users (
     Name VARCHAR(100),
     Email VARCHAR(100) UNIQUE,
     PasswordHash VARCHAR(255),
-    Designation varchar(200),
+    Designation VARCHAR(200),
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -29,8 +29,33 @@ CREATE PROCEDURE DeleteUser(IN p_UserID INT)
 BEGIN
     DELETE FROM Users WHERE UserID = p_UserID;
 END $$
-DELIMITER ;
 
+-- Stored Procedure to Validate User Login
+CREATE PROCEDURE ValidateUserLogin(
+    IN p_Email VARCHAR(100), 
+    IN p_PasswordHash VARCHAR(255)
+)
+BEGIN
+    DECLARE userExists INT;
+
+    SELECT COUNT(*) INTO userExists
+    FROM Users
+    WHERE Email = p_Email AND PasswordHash = p_PasswordHash;
+
+    IF userExists = 1 THEN
+        SELECT 
+            UserID, Name, Email, Designation, CreatedAt 
+        FROM 
+            Users 
+        WHERE 
+            Email = p_Email AND PasswordHash = p_PasswordHash;
+    ELSE
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Invalid email or password';
+    END IF;
+END $$
+
+DELIMITER ;
 
 -- Categories Table
 CREATE TABLE Categories (
@@ -59,7 +84,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
 -- Transactions Table
 CREATE TABLE Transactions (
     TransactionID INT PRIMARY KEY AUTO_INCREMENT,
@@ -87,7 +111,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
 -- Budgets Table
 CREATE TABLE Budgets (
     BudgetID INT PRIMARY KEY AUTO_INCREMENT,
@@ -114,7 +137,6 @@ BEGIN
     DELETE FROM Budgets WHERE BudgetID = p_BudgetID;
 END $$
 DELIMITER ;
-
 
 -- Reporting Procedures
 DELIMITER $$
@@ -147,8 +169,8 @@ END $$
 
 DELIMITER ;
 
-
-INSERT INTO Users (Name, Email, PasswordHash,Designation) VALUES
+-- Sample Data for Users
+INSERT INTO Users (Name, Email, PasswordHash, Designation) VALUES
 ('Rahul Sharma', 'rahul@email.com', 'hashed_password1','Manager'),
 ('Sophia Williams', 'sophia@email.com', 'hashed_password2','Software developer'),
 ('Ethan Brown', 'ethan@email.com', 'hashed_password3','Engineer'),
@@ -160,7 +182,7 @@ INSERT INTO Users (Name, Email, PasswordHash,Designation) VALUES
 ('Noah Garcia', 'noah@email.com', 'hashed_password9','Cricketer'),
 ('Mia Anderson', 'mia@email.com', 'hashed_password10','Football Coach');
 
-
+-- Sample Data for Categories
 INSERT INTO Categories (UserID, Name, Type) VALUES
 (1, 'Freelance Income', 'Income'),
 (2, 'Stocks Dividends', 'Income'),
@@ -173,7 +195,7 @@ INSERT INTO Categories (UserID, Name, Type) VALUES
 (9, 'Vacation Fund', 'Income'),
 (10, 'Charity Donations','Expense');
 
-
+-- Sample Data for Transactions
 INSERT INTO Transactions (UserID, CategoryID, Amount, Description) VALUES
 (1, 1, 1500.00, 'Freelance project for a client'),
 (2, 2, 300.00, 'Stock dividends received'),
@@ -184,9 +206,9 @@ INSERT INTO Transactions (UserID, CategoryID, Amount, Description) VALUES
 (7, 7, 200.00, 'Plumbing repairs at home'),
 (8, 8, 15.99, 'Netflix & Spotify subscription'),
 (9, 9, 500.00, 'Deposit into vacation savings'),
-(10, 10, 50.00, 'Donation to a charity organization');
+(10, 10, 50.00, 'Donation to a charity organization');
 
-
+-- Sample Data for Budgets
 INSERT INTO Budgets (UserID, CategoryID, Amount, StartDate, EndDate) VALUES
 (1, 3, 1000.00, '2025-04-01', '2025-04-30'),
 (2, 4, 200.00, '2025-04-01', '2025-04-30'),
